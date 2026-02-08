@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Register</title></head>
+<body>
+  <h1>新規登録</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post">
+    <div>ユーザー名: <input name="username"></div>
+    <div>パスワード: <input name="password" type="password"></div>
+    <button type="submit">登録</button>
+  </form>
+
+  <p><a href="{{ url_for('login') }}">ログインへ</a></p>
+</body>
+</html>
