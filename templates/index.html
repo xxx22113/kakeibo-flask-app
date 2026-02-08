@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
+  <a href="{{ url_for('home') }}" class="btn-home">🏠 ホームに戻る</a>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>家計簿</title>
@@ -16,6 +17,7 @@
   </style>
 </head>
 <body>
+  {% include "_header.html" %}
   <h1>家計簿</h1>
   <p><small>日付・カテゴリ・金額・メモを記録します（SQLiteに保存）。</small></p>
 

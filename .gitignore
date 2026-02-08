@@ -1,2 +1,2 @@
 # DBファイルはGit管理しない
-kakeibo.db
+*.db

@@ -25,17 +25,21 @@ def init_db():
         
 _db_inited = False
 
+def login_required():
+    return "user_id" in session
+
 @app.before_request
 def ensure_db_once():
     global _db_inited
     if not _db_inited:
         init_db()
         _db_inited = True
-
-
-def login_required():
-    return "user_id" in session
-
+        
+@app.route("/home")
+def home():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    return render_template("home.html")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():

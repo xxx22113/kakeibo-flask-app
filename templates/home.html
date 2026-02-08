@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>ホーム | KAKEIBO-MEMO</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>ようこそ、KAKEIBO-MEMO</h1>
+
+  <p>使う機能を選んでください。</p>
+
+  <ul>
+    <li><a href="{{ url_for('kakeibo') }}">📒 家計簿を開く</a></li>
+    <li><a href="{{ url_for('logout') }}">🚪 ログアウト</a></li>
+  </ul>
+</body>
+</html>
