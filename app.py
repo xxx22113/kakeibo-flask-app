@@ -122,9 +122,34 @@ def index():
 
     return render_template("index.html", rows=rows, username=session.get("username"))
 
+@app.get("/api/expenses")
+def list_expenses():
+    if "user_id" not in session:
+        return jsonify({"error": "unauthorized"}), 401
 
-"""@app.post("/api/expenses")
+    user_id = session["user_id"]
+
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT id, spent_date, category, amount, memo FROM expenses WHERE user_id = ? ORDER BY id DESC",
+            (user_id,),
+        ).fetchall()
+
+        total = conn.execute(
+            "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE user_id = ?",
+            (user_id,),
+        ).fetchone()[0]
+
+    return jsonify({
+        "rows": [dict(r) for r in rows],
+        "total": total
+    })
+
+@app.post("/api/expenses")
 def create_expense():
+    if "user_id" not in session:
+        return jsonify({"error": "unauthorized"}), 401
+    
     data = request.get_json(force=True)
 
     spent_date = (data.get("spent_date") or "").strip()
@@ -134,7 +159,7 @@ def create_expense():
     try:
         amount = int(data.get("amount"))
     except Exception:
-        amount = None
+        return jsonify({"エラー": "数字を入れてください"}), 400
 
     if not spent_date or not category or amount is None or amount < 0:
         return (
@@ -144,15 +169,17 @@ def create_expense():
             400,
         )
 
+    user_id = session["user_id"]
+
     with get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO expenses(spent_date, category, amount, memo) VALUES(?,?,?,?)",
-            (spent_date, category, amount, memo),
+            "INSERT INTO expenses (user_id, spent_date, category, amount, memo) VALUES (?, ?, ?, ?, ?)",
+            (user_id, spent_date, category, amount, memo),
         )
         new_id = cur.lastrowid
 
     return jsonify({"id": new_id}), 201
-"""
+
 
 @app.delete("/api/expenses/<int:expense_id>")
 def delete_expense(expense_id: int):
