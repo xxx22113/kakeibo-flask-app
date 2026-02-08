@@ -83,7 +83,7 @@ def login():
         if user and check_password_hash(user["password_hash"], password):
             session["user_id"] = user["id"]
             session["username"] = user["username"]
-            return redirect(url_for("index"))
+            return redirect(url_for("home"))
 
         flash("ユーザー名またはパスワードが違います")
         return redirect(url_for("login"))
@@ -97,8 +97,8 @@ def logout():
     return redirect(url_for("login"))
 
 
-@app.route("/", methods=["GET", "POST"])
-def index():
+@app.route("/kakeibo", methods=["GET", "POST"])
+def kakeibo():
     if not login_required():
         return redirect(url_for("login"))
 
