@@ -22,6 +22,15 @@ def init_db():
         DB_PATH.touch()
     with get_conn() as conn:
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        
+_db_inited = False
+
+@app.before_request
+def ensure_db_once():
+    global _db_inited
+    if not _db_inited:
+        init_db()
+        _db_inited = True
 
 
 def login_required():
@@ -168,3 +177,6 @@ def delete_expense(expense_id: int):
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
+    
+
+
