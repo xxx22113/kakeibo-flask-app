@@ -72,26 +72,23 @@ function esc(s) {
 
 async function load() {
   const data = await api("/api/expenses");
-  $("total").textContent = data.total;
 
       // 念のためのガード（安全対策）
     if (!data || !Array.isArray(data.rows)) {
       console.error("Invalid response:", data);
+      setMsg("エラー: APIの返却が不正です");
       return;
     }
 
-    // 一覧を描画
-    data.rows.forEach(row => {
-      console.log(row); // ← ここに描画処理を書く
-    });
+      // 一覧描画
+      const tbody = $("rows");
+      tbody.innerHTML = "";
 
     // 合計金額
-    document.querySelector("#total").textContent = data.total;
+    document.querySelector("#total").textContent = data.total ?? 0;
     
 
-  const tbody = $("rows");
-  tbody.innerHTML = "";
-  data.items.forEach(item => {
+  data.rows.forEach(item => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${esc(item.spent_date)}</td>
