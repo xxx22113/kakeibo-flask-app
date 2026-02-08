@@ -12,3 +12,8 @@
 .btn-home:hover {
   background: #43a047;
 }
+
+.author {
+  color: #666;
+  font-size: 0.9em;
+}
