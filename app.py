@@ -35,6 +35,12 @@ def ensure_db_once():
         init_db()
         _db_inited = True
         
+@app.route("/")
+def root():
+    if "user_id" in session:
+        return redirect(url_for("home"))
+    return redirect(url_for("login"))
+        
 @app.route("/home")
 def home():
     if "user_id" not in session:
