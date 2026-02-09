@@ -86,13 +86,20 @@ def login():
                 (username,),
             ).fetchone()
 
-        if user and check_password_hash(user["password_hash"], password):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            return redirect(url_for("home"))
+        # ① ユーザーが存在しない
+        if not user:
+            flash("このユーザーは存在しません")
+            return redirect(url_for("login"))
 
-        flash("ユーザー名またはパスワードが違います")
-        return redirect(url_for("login"))
+        # ② パスワードが違う
+        if user and check_password_hash(user["password_hash"], password):
+            flash("ユーザー名またはパスワードが違います")
+            return redirect(url_for("login"))
+
+        # ③ ログイン成功
+        session["user_id"] = user["id"]
+        session["username"] = user["username"]
+        return redirect(url_for("home"))
 
     return render_template("login.html")
 
