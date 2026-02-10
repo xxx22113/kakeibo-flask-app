@@ -1,20 +1,60 @@
 <!doctype html>
 <html lang="ja">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>家計簿</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 24px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; max-width: 680px; margin-bottom: 16px; }
-    label { display:block; margin-top: 10px; }
-    input, select, textarea, button { width: 100%; padding: 8px; margin-top: 6px; }
-    textarea { height: 70px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
-    small { color:#666; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      margin: 24px;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      max-width: 680px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+    }
+
+    textarea {
+      height: 70px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #eee;
+      padding: 8px;
+      text-align: left;
+    }
+
+    small {
+      color: #666;
+    }
   </style>
 </head>
+
 <body>
   {% include "_header.html" %}
   <h1>家計簿</h1>
@@ -35,7 +75,7 @@
     <label>金額（円）</label>
     <input id="amount" type="number" min="0" placeholder="例：1200" />
     <label>メモ</label>
-    <textarea id="memo" placeholder="例：ランチ、スーパー、電車など"></textarea>
+    <textarea id="memo" placeholder="例：ランチ、スーパー、電車など" maxlength="10"></textarea>
     <button id="addBtn">追加</button>
     <p id="msg"><small></small></p>
   </div>
@@ -45,99 +85,110 @@
     <p>合計：<b id="total">0</b> 円</p>
     <table>
       <thead>
-        <tr><th>日付</th><th>カテゴリ</th><th>金額</th><th>メモ</th><th></th></tr>
+        <tr>
+          <th>日付</th>
+          <th>カテゴリ</th>
+          <th>金額</th>
+          <th>メモ</th>
+          <th></th>
+        </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
 
-<script>
-const $ = (id) => document.getElementById(id);
+  <script>
+    const $ = (id) => document.getElementById(id);
 
-async function api(url, options) {
-  const res = await fetch(url, options);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
-  return data;
-}
+    async function api(url, options) {
+      const res = await fetch(url, options);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+      return data;
+    }
 
-function setMsg(text) {
-  $("msg").querySelector("small").textContent = text || "";
-}
+    function setMsg(text) {
+      $("msg").querySelector("small").textContent = text || "";
+    }
 
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
-}
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[c]));
+    }
 
-async function load() {
-  const data = await api("/api/expenses");
+    async function load() {
+      const data = await api("/api/expenses");
 
       // 念のためのガード（安全対策）
-    if (!data || !Array.isArray(data.rows)) {
-      console.error("Invalid response:", data);
-      setMsg("エラー: APIの返却が不正です");
-      return;
-    }
+      if (!data || !Array.isArray(data.rows)) {
+        console.error("Invalid response:", data);
+        setMsg("エラー: APIの返却が不正です");
+        return;
+      }
 
       // 一覧描画
       const tbody = $("rows");
       tbody.innerHTML = "";
 
-    // 合計金額
-    document.querySelector("#total").textContent = data.total ?? 0;
-    
+      // 合計金額
+      document.querySelector("#total").textContent = data.total ?? 0;
 
-  data.rows.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+
+      data.rows.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
       <td>${esc(item.spent_date)}</td>
       <td>${esc(item.category)}</td>
       <td>${esc(item.amount)}</td>
       <td>${esc(item.memo || "")}</td>
       <td><button data-id="${item.id}">削除</button></td>
     `;
-    tr.querySelector("button").addEventListener("click", async () => {
-      await api(`/api/expenses/${item.id}`, { method: "DELETE" });
-      await load();
+        tr.querySelector("button").addEventListener("click", async () => {
+          await api(`/api/expenses/${item.id}`, { method: "DELETE" });
+          await load();
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    $("addBtn").addEventListener("click", async () => {
+      try {
+        const spent_date = $("spent_date").value;
+        const category = $("category").value;
+        const amount = Number($("amount").value);
+        const memo = $("memo").value ?? "";
+        if (memo.length > 10) {
+          alert("メモは10文字以内で入力してください");
+          return;
+        }
+
+        await api("/api/expenses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ spent_date, category, amount, memo })
+        });
+
+        setMsg("追加しました ✅");
+        $("amount").value = "";
+        $("memo").value = "";
+        await load();
+      } catch (e) {
+        setMsg("エラー: " + e.message);
+      }
     });
-    tbody.appendChild(tr);
-  });
-}
 
-$("addBtn").addEventListener("click", async () => {
-  try {
-    const spent_date = $("spent_date").value;
-    const category = $("category").value;
-    const amount = Number($("amount").value);
-    const memo = $("memo").value;
+    // 初期日付を今日に
+    (() => {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      $("spent_date").value = `${yyyy}-${mm}-${dd}`;
+    })();
 
-    await api("/api/expenses", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ spent_date, category, amount, memo })
-    });
-
-    setMsg("追加しました ✅");
-    $("amount").value = "";
-    $("memo").value = "";
-    await load();
-  } catch (e) {
-    setMsg("エラー: " + e.message);
-  }
-});
-
-// 初期日付を今日に
-(() => {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth()+1).padStart(2,"0");
-  const dd = String(d.getDate()).padStart(2,"0");
-  $("spent_date").value = `${yyyy}-${mm}-${dd}`;
-})();
-
-load();
-</script>
+    load();
+  </script>
 </body>
+
 </html>
