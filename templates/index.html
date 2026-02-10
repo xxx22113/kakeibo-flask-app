@@ -97,6 +97,12 @@
     </table>
   </div>
 
+  <section>
+    <h2>AI家計アドバイス</h2>
+    <button onclick="loadAdvice()">アドバイス生成</button>
+    <pre id="adviceBox">（まだ）</pre>
+  </section>
+
   <script>
     const $ = (id) => document.getElementById(id);
 
@@ -186,6 +192,13 @@
       const dd = String(d.getDate()).padStart(2, "0");
       $("spent_date").value = `${yyyy}-${mm}-${dd}`;
     })();
+
+    async function loadAdvice() {
+      const res = await fetch("/api/ai/advice");
+      const data = await res.json();
+      document.getElementById("adviceBox").textContent =
+        data.error ? data.error : data.advice;
+    }
 
     load();
   </script>
