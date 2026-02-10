@@ -1,5 +1,6 @@
 import sqlite3
 import requests
+import os
 
 from flask import (
     Flask,
@@ -19,6 +20,7 @@ from datetime import date
 APP_DIR = Path(__file__).parent
 DB_PATH = APP_DIR / "kakeibo.db"
 SCHEMA_PATH = APP_DIR / "schema.sql"
+IS_RENDER = os.getenv("RENDER") == "true"
 
 app = Flask(__name__)
 app.secret_key = "change-me-very-secret"  # 本番は環境変数推奨
@@ -369,6 +371,12 @@ def ai_advice():
         return jsonify({"error": "ollama_request_failed", "detail": str(e)}), 502
 
     return jsonify({"ym": ym, "summary": summary, "advice": advice_text})
+
+def get_advice(messages):
+    if IS_RENDER:
+        return "本番環境ではAI機能は利用できません"
+    return call_ollama(messages)
+
 
 
 if __name__ == "__main__":
